@@ -7,4 +7,3 @@ FIELD_OPTIONALLY_ENCLOSED_BY = '"'
 ROW_SEPARATOR = '\n'
 
 
-test

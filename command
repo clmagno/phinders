@@ -1,7 +1,0 @@
-COPY INTO employees
-FROM 'dbfs:/path/to/your/employees.csv'
-FILE_TYPE = 'CSV'
-FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-FIELD_SEPARATOR = ','
-FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-ROW_SEPARATOR = '\n'
