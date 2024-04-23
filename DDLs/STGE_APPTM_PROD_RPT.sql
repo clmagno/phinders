@@ -1,0 +1,69 @@
+-- CREATE TABLE IF NOT EXISTS EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT(
+-- 	name VARCHAR(63) NOT NULL COMMENT 'Resource names of the categories the product is associated with.',
+-- 	type STRING NOT NULL COMMENT 'Default: "PRODUCT_TYPE_UNSPECIFIED"  Enum: "PRODUCT_TYPE_UNSPECIFIED" "SUBSCRIPTION_PRODUCTS" "CLOUD_REBILLING_PRODUCT"  Defines the type of product.  SUBSCRIPTION_PRODUCT: Product defines skus, plans with subscription and/or overages.  CLOUD_REBILLING_PRODUCT: Product represents cloud rebilling product.',
+-- 	categories  ARRAY<STRING>  COMMENT 'Resource names of the categories the product is associated with.',
+-- 	hasPublishedVersions BOOLEAN  COMMENT 'Flag indicating whether this product has unpublished changes. Always false on a published product. Only set to true on an unpublished product if it differs from the published product. Output-only.',
+-- 	marketingDescription VARCHAR(255)  COMMENT 'Detailed description of the product.',
+-- 	marketingDisplayName VARCHAR(255) NOT NULL COMMENT 'Client supplied display name of the product.',
+-- 	marketingCaption VARCHAR(255)  COMMENT 'Short description of the product.',
+-- 	marketingDefaultImageTitle VARCHAR(255)  COMMENT 'Title of the media. UTF plain-text.',
+-- 	marketingDefaultImageContent VARCHAR(255)  COMMENT 'For videos, embeddable iframe code or link For images, contains the url of the image. For adding/updating image, create a new Blob using blob service and upload to the given URL. Once upload is completed, put the signature in this field and call create/update.',
+-- 	marketingDefaultImageType STRING  COMMENT 'Default: "MEDIA_TYPE_UNSPECIFIED"  Enum: "MEDIA_TYPE_UNSPECIFIED" "MEDIA_TYPE_IMAGE" "MEDIA_TYPE_VIDEO"  Type of media used.  MEDIA_TYPE_IMAGE: User uploaded image  MEDIA_TYPE_VIDEO: Link to the video',
+-- 	supportedCurrencies ARRAY<STRING> NOT NULL COMMENT 'currency of the product' ,
+-- 	billingMode STRING  COMMENT 'Default: "BILLING_MODE_UNSPECIFIED"  Enum: "BILLING_MODE_UNSPECIFIED" "PREPAY" "POSTPAY"  Specifies when the payment should be made.  PREPAY: Payment should be made in the beginning.  POSTPAY: Payment should be made at the end of the cycle.',
+-- 	features STRUCT<
+--     id: VARCHAR(255) COMMENT 'Client supplied id of the feature. Should be unique within a product.',
+--     displayName: VARCHAR(255) COMMENT 'Display name of the feature.'>,
+-- 	skus STRUCT<
+--     id: INT COMMENT 'Client supplied id of the feature. Should be unique within a product.',
+--     displayName: VARCHAR(255) COMMENT 'Display name of the sku.',
+--     description: VARCHAR(255) COMMENT 'Description of the sku.',
+--     cancelTiming: STRING COMMENT 'Default: "CHANGE_TIMING_UNSPECIFIED"  Enum: "CHANGE_TIMING_UNSPECIFIED" "END_OF_TERM" "IMMEDIATE"  Specifies when the change actually happens during upgrade/downgrade/cancel.  END_OF_TERM: Change happens end of term.  IMMEDIATE: Change happens immediately',
+--     plans: STRUCT<
+--       displayName: VARCHAR(255) COMMENT 'Display name of the plan.',
+--       billingPeriod: STRING COMMENT 'Default: "BILLING_PERIOD_UNSPECIFIED",  Enum: "BILLING_PERIOD_UNSPECIFIED" "ONE_TIME" "MINUTELY" "HOURLY" "DAILY" "WEEKLY" "BIWEEKLY" "MONTHLY" "QUARTERLY" "BIANNUAL" "ANNUAL"  Invoice generation interval.  ONE_TIME: (- Added for backwards compatibility but not supported. -)  MINUTELY: (- Added for backwards compatibility but not supported. -)  HOURLY: (- Added for backwards compatibility but not supported. -)  DAILY: (- Added for backwards compatibility but not supported. -)  WEEKLY: Every week  BIWEEKLY: Every other week  MONTHLY: Every month. Date of invoice will be monthly_billing_day.  QUARTERLY: Every three month.  BIANNUAL: Twice yearly  ANNUAL: Yearly. Uses subscription date for invoice generation.',
+--         phases: STRUCT<
+--           duration: STRUCT <
+--             unit: STRING COMMENT 'Plan phases. Phases should be ordered as [trial], [discount], fixed/unlimited Trial and discount are optional. Either fixed or unlimited phase should be specified.Duration represents the time duration. Default: "TIME_UNIT_UNSPECIFIED" Enum: "TIME_UNIT_UNSPECIFIED" "MINUTE" "HOUR" "DAY" "MONTH" "QUARTER" "YEAR" "UNLIMITED"Time unit (month, day etc)',
+--             count: INT COMMENT 'Count'>,
+--           type: STRING COMMENT 'string (PhaseType) Default: "PHASE_TYPE_UNSPECIFIED" Enum: "PHASE_TYPE_UNSPECIFIED" "TRIAL_PHASE" "DISCOUNT_PHASE" "FIXED_PHASE" "UNLIMITED_PHASE"',
+--           reccuringPrice: STRUCT<
+--             USD: INT COMMENT 'Recurring price for this phase. Map of currency to price value. All supported currencies should be present. Key is the currency code like USD, GBP etc Value is the price.'
+--           >>,
+--       icon: VARCHAR(255),
+      
+
+-- 	addOns STRUCT<
+    
+--     > ,
+-- 	customFields STRUCT<>  ,
+-- 	supportPlans STRUCT<>  ,
+-- 	isSharedProduct BOOLEAN  COMMENT 'Marks if a product is shared or owned (Output-only).',
+-- 	etag VARCHAR(255)  COMMENT 'Etag is an opaque validator for differentiating between multiple representations of the same resource. When making update call, if the etag is mismatched, then request is rejected. IMPORTANT: etag field should contain the value received from latest Get Product call. This is to prevent two callers overwriting each other. Not populated for List API.
+-- Create product - Output-only
+-- Update product - Required',
+-- 	tagsValues STRUCT<>  ,
+-- 	createTime TIMESTAMP  COMMENT 'Datetime Indication of Product Created',
+-- 	updateTime TIMESTAMP  COMMENT 'Datetime Indication of recent Product Updated'
+-- )USING delta
+
+-- TBLPROPERTIES(
+--   'delta.minReaderVersion' = '1',
+--   'delta.minWriterVersion' = '2'
+-- );
+
+
+-- -- Add the CHECK constraints
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT typeCheck CHECK (TYPE IN ('PRODUCT_TYPE_UNSPECIFIED','SUBSCRIPTION_PRODUCT', 'CLOUD_REBILLING_PRODUCT'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT marketingDefaultImageTypeCheck CHECK (MARKETINGDEFAULTIMAGETYPE IN ('MEDIA_TYPE_UNSPECIFIED' ,'MEDIA_TYPE_IMAGE','MEDIA_TYPE_VIDEO'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT billingModeCheck CHECK (BILLINGMODE IN ('BILLING_MODE_UNSPECIFIED','PREPAY','POSTPAY'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT skusCancelTimingCheck CHECK (SKUSCANCELTIMING IN ('CHANGE_TIMING_UNSPECIFIED', 'END_OF_TERM', 'IMMEDIATE'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT skusPlansBillingPeriodCheck CHECK (SKUSPLANSBILLINGPERIOD IN ('BILLING_PERIOD_UNSPECIFIED','ONE_TIME','MINUTELY','HOURLY','DAILY','WEEKLY','BIWEEKLY','MONTHLY','QUARTERLY','BIANNUAL','ANNUAL'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT skusPlansPhasesDurationUnitCheck CHECK (SKUSPLANSPHASESDURATIONUNIT IN ('TIME_UNIT_UNSPECIFIED','MINUTE','HOUR','DAY','MONTH','QUARTER','YEAR','UNLIMITED'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT skusPlansPhasesTypeCheck CHECK (SKUSPLANSPHASESTYPE IN ('PHASE_TYPE_UNSPECIFIED','TRIAL_PHASE','DISCOUNT_PHASE','FIXED_PHASE','UNLIMITED_PHASE'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT addonsAlignmentCheck CHECK (ADDONSALIGNMENT IN ('ADD_ON_ALIGNMENT_UNSPECIFIED','PURCHASE_DATE','SUBSCRIPTION_DATE'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT addonsCancelTimingCheck CHECK (ADDONSCANCELTIMING IN ('CHANGE_TIMING_UNSPECIFIED','END_OF_TERM','IMMEDIATE'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT addonsPlansBillingPeriodCheck CHECK (ADDONSPLANSBILLINGPERIOD IN ('BILLING_PERIOD_UNSPECIFIED','ONE_TIME','MINUTELY','HOURLY','DAILY','WEEKLY','BIWEEKLY','MONTHLY','QUARTERLY','BIANNUAL','ANNUAL'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT addonsPlansPhasesDurationUnitCheck CHECK (ADDONSPLANSPHASESDURATIONUNIT IN ('TIME_UNIT_UNSPECIFIED','MINUTE','HOUR','DAY','MONTH','QUARTER','YEAR','UNLIMITED'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT addonsPlansPhasesTypeCheck CHECK (ADDONSPLANSPHASESTYPE IN ('PHASE_TYPE_UNSPECIFIED','TRIAL_PHASE','DISCOUNT_PHASE','FIXED_PHASE','UNLIMITED_PHASE'));
+-- ALTER TABLE EP_SSOT_STGE.STGE_APPTM_PRDCT_RPT ADD CONSTRAINT customFieldsTypeCheck CHECK (CUSTOMFIELDSTYPE IN('CUSTOM_FIELD_TYPE_UNSPECIFIED','STRING','PRIVATE_BINARY'));
