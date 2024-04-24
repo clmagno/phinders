@@ -1,9 +1,118 @@
-COPY INTO employees
-FROM 'dbfs:/path/to/your/employees.csv'
-FILE_TYPE = 'CSV'
-FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-FIELD_SEPARATOR = ','
-FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-ROW_SEPARATOR = '\n'
+--clean slate
+DROP TABLE IF EXISTS dvlp_5.udp_raw.STGE_APPTM_ORD_RPT_temp;
+--create table
+CREATE TABLE IF NOT EXISTS dvlp_5.udp_raw.STGE_APPTM_ORD_RPT_temp(
+  name VARCHAR(100) NOT NULL COMMENT 'Resource name of the order accounts//customers//orders/*',
+  referenceId VARCHAR(100) NOT NULL COMMENT 'internal ref Id',
+  displayName VARCHAR(255) COMMENT 'Client specified display name for the order , eg: plan order azure',
+  userId INT NOT NULL COMMENT 'Unique Identifier of the User: eg: 123',
+  userName VARCHAR(255) COMMENT 'Name of the User under Reseller ',
+  userEmail VARCHAR(255) COMMENT 'Contact Email of the User under Reseller',
+  status STRING COMMENT '(new,confirmed,on_hold,completed,error,canceled,in_progress,scheduled)',
+  currencyCode VARCHAR(3) COMMENT 'Currency codes are unique three-letter identifiers that denote a specific currency. Eg: US Dollar - (USD) ',
+  total DECIMAL(12, 4),
+  cartId BIGINT,
+  orderItems ARRAY < STRUCT < name: VARCHAR(100) COMMENT 'Resource name of the order item accounts//customers//orders//orderItems/',
+  referenceId: VARCHAR(100) COMMENT 'Order Item ref Id',
+  action: STRING COMMENT 'Create, Update, Delete',
+  resourceId: VARCHAR(255) COMMENT 'Resoure id for LCM, subscription id or entitlement id, etc.',
+  productId: VARCHAR(255) COMMENT 'The ccp product id that is being purchased.',
+  skuId: VARCHAR(255) COMMENT 'The sku id that is being purchased.',
+  planId: VARCHAR(255) COMMENT 'The ccp plan id that is being purchased.',
+  quantity: BIGINT COMMENT 'The number of the products that needs to be purchased',
+  providerName: STRING COMMENT 'azure, gcp, gws, ibm, sophos, unspecified',
+  price: DECIMAL(12, 4) COMMENT 'The plan s recurring price. The period of the recurrence is the period field. This is the price for a single unit. This does not include the price of optional features. Readonly.',
+  endCustomerPO: VARCHAR(255),
+  resellerPO: VARCHAR(255),
+  addOns: STRUCT < id: VARCHAR(50),
+  displayName: VARCHAR(255) COMMENT 'Display name of the add on.',
+  description: VARCHAR(255) COMMENT 'Description of the add on.',
+  alignment: STRING,
+  cancelTiming: STRING,
+  allowMultiple: BOOLEAN,
+  plans: STRUCT < id: VARCHAR(255),
+  displayName: VARCHAR(255),
+  billingPeriod: VARCHAR(255),
+  approvalRequired: BOOLEAN,
+  phases: STRUCT < duration: STRUCT < unit :VARCHAR(255),
+  count: BIGINT,
+  unlimited: BOOLEAN >,
+  type: VARCHAR(255),
+  fixedPrice: STRING,
+  recurringPrice: STRING,
+  usages: ARRAY < STRING > >,
+  icon: VARCHAR(255),
+  productId: VARCHAR(255),
+  pricebookPrice: DECIMAL(12, 4),
+  pricebookCurrency: VARCHAR(255),
+  productAvailability: BOOLEAN,
+  pricebookMasterPrice: DECIMAL(12, 4),
+  pricebookDetails: STRING,
+  supportPlan: STRUCT < name: VARCHAR(255),
+  plansId: BIGINT,
+  displayName: VARCHAR(255),
+  default: BOOLEAN > >,
+  taxCode: VARCHAR(100),
+  productId: VARCHAR(255),
+  pricebookPrice: DECIMAL(12, 4),
+  pricebookCurrency: VARCHAR(255),
+  productAvailability: BOOLEAN,
+  alias: VARCHAR(255),
+  icon: VARCHAR(255),
+  productCloudProviderName: VARCHAR(100),
+  pricebookMasterPrice: DECIMAL(12, 4),
+  pricebookDetails: STRING >,
+  attributes: STRUCT < name: STRING,
+  value: STRING >,
+  catalogAttributes: STRUCT < name: STRING,
+  value: STRING >,
+  cartItemId: INT COMMENT 'Id of the cartitem specified to the Order',
+  status: STRING COMMENT 'new, completed, on_hold, error',
+  errors: STRUCT < code: STRING,
+  detail: STRING,
+  sourceName: STRING,
+  instancePath: STRING >,
+  provisioningInfo: STRUCT < processId: VARCHAR(100) COMMENT 'ProvisioningInfo stores information related to the provisioning that was made from this order or order item (Output-only) It will be used for troubleshooting issues with orders. (Output-only)',
+  processName: VARCHAR(255) COMMENT 'It will be used for troubleshooting issues with orders. (Output-only)' >,
+  createTime: TIMESTAMP COMMENT 'Datetime indication of Order creation (UTC format)',
+  updateTime: TIMESTAMP COMMENT 'Datetime indication of  recent Order Update  (UTC format)',
+  additionalInformation: STRING > > NOT NULL COMMENT 'Array of line items',
+  orderProvisioningInfoPId VARCHAR(100) COMMENT 'ProvisioningInfo stores information related to the provisioning that was made from this order or order item . It will be used for troubleshooting issues with orders.',
+  orderProvisioningInfoPName VARCHAR(100) COMMENT 'It will be used for troubleshooting issues with orders. ',
+  orderCreatedTime TIMESTAMP COMMENT 'Datetime indication of Order creation in the UTC format',
+  orderUpdatedTime TIMESTAMP COMMENT 'Datetime indication of  recent Update of an Order in the UTC format',
+  optusCompanyABN VARCHAR(50) NOT NULL,
+  optusCustomerACN VARCHAR(50) NOT NULL,
+  optusBillingAccountId VARCHAR(50) NOT NULL,
+  optusAccountStatus VARCHAR(50) NOT NULL,
+  optusCustomerId VARCHAR(50) NOT NULL,
+  optusFAId VARCHAR(50) NOT NULL,
+  optusContactId VARCHAR(50) NOT NULL
+) USING delta TBLPROPERTIES(
+  'delta.minReaderVersion' = '1',
+  'delta.minWriterVersion' = '2'
+);
+-- Add the CHECK constraints
+ALTER TABLE
+  dvlp_5.udp_raw.STGE_APPTM_ORD_RPT_temp
+ADD
+  CONSTRAINT statusCheck CHECK (
+    status IN(
+      'NEW',
+      'CONFIRMED',
+      'ON_HOLD',
+      'COMPLETED',
+      'ERROR',
+      'CANCELED',
+      'IN_PROGRESS',
+      'SCHEDULED'
+    )
+  );
+-- ALTER TABLE dvlp_5.udp_raw.STGE_APPTM_ORD_RPT_temp ADD CONSTRAINT orderItemsActionCheck CHECK (orderItems.action IN ('CREATE','UPDATE','DELETE'));
+  -- ALTER TABLE dvlp_5.udp_raw.STGE_APPTM_ORD_RPT_temp ADD CONSTRAINT orderItemsStatusCheck CHECK (orderItems.status IN ('NEW','COMPLETED','ON_HOLD','ERROR'));
+  -- ALTER TABLE dvlp_5.udp_raw.STGE_APPTM_ORD_RPT_temp ADD CONSTRAINT optusAccountStatusCheck CHECK (optusAccountStatus IN ('OPEN','CANCELLED'));
 
-
+COPY INTO dvlp_5.udp_raw.stge_apptm_ord_rpt_temp
+FROM 'dbfs:/FileStore/apptm/APPT_ORDERS_20240415_001_01.csv'
+FILEFORMAT = CSV
+FORMAT_OPTIONS ('inferSchema' = 'true',  'trailer' = 'true', 'header' = 'true');
